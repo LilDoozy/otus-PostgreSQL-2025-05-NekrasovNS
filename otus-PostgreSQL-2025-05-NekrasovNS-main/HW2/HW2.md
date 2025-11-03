@@ -1,8 +1,8 @@
 # Домашняя работа № 2
 
-**Шаг.1 Развернул виртуальную ОС на платформе виртуализации VirtualBox, установил ОС Linux Ubuntu 24.04 с дефолтными настройками машины.**
+**1. Развернул виртуальную ОС на платформе виртуализации VirtualBox, установил ОС Linux Ubuntu 24.04 с дефолтными настройками машины.**
 
-**Шаг 2. Установил и развернул Docker Engine на ОС:**
+**2. Установил и развернул Docker Engine на ОС:**
 
 ```
 student@studentPC:~$ systemctl status docker
@@ -20,7 +20,7 @@ TriggeredBy: ● docker.socket
 
 ```
 
-**Шаг 3. Создал директорию в ОС: /var/lib/postgres и развернул туда контейнер docker с образом postgresql 17.4 (Смонтировал):**
+**3. Создал директорию в ОС: /var/lib/postgres и развернул туда контейнер docker с образом postgresql 17.4 (Смонтировал):**
 ```
 
 initdb: warning: enabling "trust" authentication for local connections
@@ -73,7 +73,7 @@ PostgreSQL init process complete; ready for start up.
 
 2025-04-13 17:23:53.071 UTC [1] LOG: database system is ready to accept connections
 ```
-**Шаг 4. Создаю простую таблицу через контейнер docker и проверяю ее в postgresql:**
+**4. Создаю простую таблицу через контейнер docker и проверяю ее в postgresql:**
 ```
 CREATE TABLE web_origins (
     client_id character varying(36) NOT NULL,
@@ -95,7 +95,7 @@ docker=# \dt
  public | web_origins | table | docker
 (1 row)
 ```
-**Шаг 5. Успешно подключился к контейнеру с сервером извне инстансов, удалил серверный контйенер, создал его снова, повторно подключился к контейнеру сервера, снова вывел список таблиц:**
+**5. Успешно подключился к контейнеру с сервером извне инстансов, удалил серверный контйенер, создал его снова, повторно подключился к контейнеру сервера, снова вывел список таблиц:**
 
 ```
 root:/# psql -h localhost -p 5432 -U docker -d docker
