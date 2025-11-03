@@ -68,7 +68,7 @@ root@pgdbvip:~# mkdir /backup
 Монтируем диск в директорию /backup командой ```mount -t ext4 /dev/sdb1 /backup```
 
 ```
-root@studentPC:~# mount -t ext4 /dev/sdb1 /backup
+root@pgdbvip:~# mount -t ext4 /dev/sdb1 /backup
 
 ```
 Добавляем UUID диска в /etc/fstab(ввести UUID), чтобы после перезагрузки VM диск был примонтирован.
