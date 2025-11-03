@@ -86,8 +86,8 @@ See "systemctl status postgresql@16-main.service" and "journalctl -xeu postgresq
 ```
 **В конфигурационном файле /etc/postgresql/16/main/postgresql.conf нужно изменить параметр ```data_directory='/backup/16/main'```**
 **Меняем права на директорию и владельца:**
-root@pgdbvip:/backup/16/main# sudo chown -R postgres:postgres /backup/16
-root@pgdbvip:/backup/16/main# sudo chmod -R 700 /backup/16
+```root@pgdbvip:/backup/16/main# sudo chown -R postgres:postgres /backup/16```
+```root@pgdbvip:/backup/16/main# sudo chmod -R 700 /backup/16```
 
 ```sudo systemctl start postgresql@16-main```
 
