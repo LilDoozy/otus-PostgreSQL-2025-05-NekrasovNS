@@ -8,6 +8,7 @@
 root@pgdbvip:~# sudo -u postgres pg_lsclusters
 Ver Cluster Port Status Owner    Data directory              Log file
 16  main    5432 online postgres /var/lib/postgresql/16/main /var/log/postgresql/postgresql-16-main.log```
+```
 
 **2. Создал произвольную таблицу с произвольным содержимым и останавливаем кластер postgres:**
 
