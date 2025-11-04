@@ -166,4 +166,5 @@ ON suppliers.supplier_id = orders.supplier_id;
 ```
 
 Строки для MegaMarket и YandexMarket будут включены в выборку, поскольку использовалось *FULL OUTER JOIN*. Заметим, что поле order_date для этих записей не содержит значений (либо будет *null*).
+
 Строка для supplier_id 1004 тоже будет включена в выборку, поскольку использовалось *FULL OUTER JOIN*. Заметим, что поля supplier_id и supplier_name для этих записей не содержит значений (либо будет *null*).
