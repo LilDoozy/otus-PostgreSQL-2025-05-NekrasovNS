@@ -1,71 +1,71 @@
 # Домашняя работа № 8
 
 
-**Шаг 1. Настраиваю сервер таким образом чтобы в журнал сообщений сбрасывалась информация о блокировках, удерживаемых более 200 миллисекунд. Так же попытаюсь воспроизвести ситуацию, при которой в журнале будут появлятся такие сообщения:**
+**1. Стоит задача настроить сервер так, чтобы в журнал сообщений сбрасывалась информация о блокировках, удерживаемых более 200 миллисекунд. Так же нужно попытаться воспроизвести ситуацию, при которой в журнале будут появляться такие сообщения.**
 
-Смотрим дефолтные параметры значений log_lock_waits и deadlock_timeout:
+Проверка стандартных параметров значений log_lock_waits и deadlock_timeout:
 
 ```
 locks=# show log_lock_waits;
- log_lock_waits 
+ log_lock_waits
 ----------------
  off
-(1 row)
+(1 строка)
 
 locks=# show deadlock_timeout;
- deadlock_timeout 
+ deadlock_timeout
 ------------------
  1s
-(1 row)
+(1 строка)
 ```
 
-Изменяем их на те которые требутся в условии ДЗ (Перезапускаем службу Postgres):
+Изменение параметров и перезапуск службы:
 
 ```
 locks=# alter system set deadlock_timeout = 200;
 ALTER SYSTEM
-
 locks=# alter system set log_lock_waits = on;
 ALTER SYSTEM
 
-После рестарта службы:
+Рестарт службы и проверка измененных параметров:
 
-postgres=# show log_lock_waits;
- log_lock_waits 
+locks=# show log_lock_waits;
+ log_lock_waits
 ----------------
  on
-(1 row)
+(1 строка)
 
-postgres=# show deadlock_timeout;
- deadlock_timeout 
+locks=# show deadlock_timeout;
+ deadlock_timeout
 ------------------
  200ms
-(1 row)
+(1 строка)
 ```
 
-### Шаг 2. Представление pg_locks и блокировки:
+###2. pg_locks и блокировки.
 
-Создам базу и таблицу с произвольными значениями:
+Создаем базу и таблицу с произвольными значениями:
 
 ```
 postgres=# create database locks;
 CREATE DATABASE
+CREATE DATABASE
 postgres=# \c locks
-You are now connected to database "locks" as user "postgres".
+Вы подключены к базе данных "locks" как пользователь "postgres".
 locks=# create table accounts (acc_no integer PRIMARY KEY, amount numeric);
 CREATE TABLE
 locks=# insert into accounts values (1,1000.00),(2,2000.00),(3,3000.00);
 INSERT 0 3
 ```
 
-Выведу активные блокировки:
+Проверка активных блокировок:
 
 ```
 locks=*# select pg_backend_pid();
  pg_backend_pid 
 ----------------
            4546
-(1 row)
+(1 строка)
 
 locks=*# SELECT locktype, relation::REGCLASS, virtualxid AS virtxid, transactionid AS xid, mode, granted FROM pg_locks WHERE pid = 4546;
   locktype  | relation | virtxid | xid |      mode       | granted 
@@ -75,7 +75,7 @@ locks=*# SELECT locktype, relation::REGCLASS, virtualxid AS virtxid, transaction
 
 ```
 
-Начну транзакцию в новой сессии и обновлю строку, посмотрим новые блокировки:
+Запустим транзакцию в параллельной сессии и обновим строку, проверим на наличие новых блокировок:
 
 ```
 locks=# begin;
@@ -91,12 +91,11 @@ locks=*# SELECT locktype, relation::REGCLASS, virtualxid AS virtxid, transaction
  relation      | pg_locks      |         |        | AccessShareLock  | t
  virtualxid    |               | 5/78    |        | ExclusiveLock    | t
  transactionid |               |         | 596835 | ExclusiveLock    | t
-(5 rows)
+(5 строк)
 
 ```
 
-Открою новую сессию и попробую сделать индекс на поле **acc_no integer PRIMARY KEY:** (Начинаем новую транзакцию)
-
+Откроем еще одну сессию и сделаем индекс на поле **acc_no integer PRIMARY KEY:** 
 ```
 locks=# begin;
 BEGIN
@@ -104,11 +103,12 @@ locks=*# select pg_backend_pid();
  pg_backend_pid 
 ----------------
            5529
-(1 row)
+(1 строка)
 
 locks=*# CREATE INDEX ON accounts(acc_no); (Операция подвисла, ждет высвобождение свободных ресурсов)
 ```
-Смотрим на какую блокировку он ссылается (в первой сессии делаем запрос) и находим номер блокирующего процесса:
+Операция зависла, т.к. ждет ресурсов для выполнения.
+Проверяем, на какую блокировку ссылается, выполнив запрос в первой сессии и находим номер блокирующего процесса:
 
 ```
 SELECT locktype, relation::REGCLASS, virtualxid AS virtxid, transactionid AS xid, mode, granted FROM pg_locks WHERE pid = 5529;
@@ -116,7 +116,7 @@ SELECT locktype, relation::REGCLASS, virtualxid AS virtxid, transactionid AS xid
 ------------+----------+---------+-----+---------------+---------
  virtualxid |          | 6/4     |     | ExclusiveLock | t
  relation   | accounts |         |     | ShareLock     | f (видим что вот блокировка, он ее не может взять, т.к. этот обьект заблокирован 2-ой нашей сессией)
-(2 rows)
+(2 строки)
 
 
 locks=# SELECT pg_blocking_pids(5529);
@@ -150,7 +150,7 @@ query            | SELECT locktype, relation::REGCLASS, virtualxid AS virtxid, t
 backend_type     | client backend
 ```
 
-Когда мы завершим транзакцию в 2-ой сесии, то в 3-ей сесии выполнится транзакция по создани индекса:
+Как только завершится транзакция во 2-ой сесии, то в 3-ей сессии выполнится транзакция по создании индекса:
 
 ```
 2-ая сессия:
@@ -166,9 +166,9 @@ locks=*# commit;
 COMMIT
 ```
 
-### Шаг 3. Взаимоблокировка трех транзакций:
+###3. Взаимоблокировка трех транзакций.
 
-Создаю таблицу в БД locks, и добавляю в нее данные:
+Создадим таблицу в БД locks, и добавим в нее данные:
 
 ```
 locks=# create table public.zoo (zoo_id integer, zoo_name text, zoo_animal_population integer);
@@ -177,7 +177,7 @@ locks=# insert into public.zoo (zoo_id, zoo_name, zoo_animal_population) values 
 INSERT 0 3
 ```
 
-Запускаю 3 сесии транзакций:
+Запускаю 3 сессии транзакции:
 
 | транзакция 1 | транзакция 2 | транзакция 3 |
 |:-------------------|:-------------------|:-------------------|
@@ -194,7 +194,7 @@ INSERT 0 3
 | | commit; | |
 | commit; | | |
 
-В третей транзакции сеансе, получил ошибку:
+Получаем ошибку:
 
 ```
 ERROR:  deadlock detected
@@ -205,6 +205,6 @@ HINT:  See server log for query details.
 CONTEXT:  while updating tuple (0,1) in relation "zoo"
 ```
 
-### Шаг 4. Взаимоблокировка 2-х транзакций, выполняющих UPDATE одной и той же таблицы (без where):
+### 4. Взаимоблокировка 2-х транзакций, выполняющих UPDATE одной и той же таблицы (без where):
 
 Две транзакции, одновременно выполняющие операцию UPDATE над одной и той же таблицей без использования предложения WHERE, могут столкнуться с взаимоблокировкой. Это происходит, когда одна транзакция обновляет строки в одном порядке, а другая - в противоположном. Такая ситуация, хоть и редкая, может возникнуть, если система управления базами данных (СУБД) выбирает разные планы выполнения запросов для каждой транзакции. Например, одна транзакция может читать таблицу последовательно, а другая - использовать индекс для доступа к строкам.
