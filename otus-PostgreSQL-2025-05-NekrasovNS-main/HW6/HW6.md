@@ -1,26 +1,26 @@
 # Домашняя работа № 6
 
-**Шаг 1. Установил и настроил ВМ на платформе VirtualBox, в качестве дистрибутива установлена OS Linux Ubunru 24.04 с деффолтными настройками, так же установлен PostgresSQL, приступаю к созданию таблицы проведения нагрузочного тестирования и изменения параметров конфига postgres:**
+**1. Установил и настроил ВМ на платформе VirtualBox, в качестве дистрибутива установлена OS Linux Ubunru 24.04 с деффолтными настройками, так же установлен PostgresSQL, приступаю к созданию таблицы проведения нагрузочного тестирования и изменения параметров конфига postgres:**
 
 Была настроена ВМ с следующими хар-ками:
 
 ```
-CPU: 6 core
-RAM: 8GB
-HDD: 50GB
+CPU: 1 core
+RAM: 2GB
+HDD: 30GB
 ```
 
-Установлен PostgresSQL 16.8, создана БД для тестов, так же проинициализирован pgbench:
+Установлен PostgresSQL 16.10, создана БД для тестов, так же проинициализирован pgbench:
 
 ```
-postgres@studentPC:~$ pgbench -i postgres
+postgres@pgdbvip:~$ pgbench -i  postgres
 dropping old tables...
 creating tables...
 generating data (client-side)...
-100000 of 100000 tuples (100%) done (elapsed 0.04 s, remaining 0.00 s)
+100000 of 100000 tuples (100%) done (elapsed 0.06 s, remaining 0.00 s)
 vacuuming...
 creating primary keys...
-done in 0.82 s (drop tables 0.25 s, create tables 0.09 s, client-side generate 0.15 s, vacuum 0.08 s, primary keys 0.25 s).
+done in 0.21 s (drop tables 0.01 s, create tables 0.00 s, client-side generate 0.08 s, vacuum 0.05 s, primary keys 0.06 s).
 ```
 
 Запускаю нагрузочное тестирование БД:
@@ -28,19 +28,19 @@ done in 0.82 s (drop tables 0.25 s, create tables 0.09 s, client-side generate 0
 ```
 pgbench -c8 -P 6 -T 60 -U postgres postgres
 
-postgres@studentPC:~$ pgbench -c8 -P 6 -T 60 -U postgres postgres
-pgbench (16.8 (Ubuntu 16.8-0ubuntu0.24.04.1))
+postgres@pgdbvip:~$ pgbench -c8 -P 6 -T 60 -U postgres postgres
+pgbench (16.10 (Ubuntu 16.10-1.pgdg22.04+1))
 starting vacuum...end.
-progress: 6.0 s, 316.7 tps, lat 24.991 ms stddev 18.183, 0 failed
-progress: 12.0 s, 316.7 tps, lat 25.185 ms stddev 21.347, 0 failed
-progress: 18.0 s, 331.0 tps, lat 24.090 ms stddev 18.926, 0 failed
-progress: 24.0 s, 330.4 tps, lat 24.121 ms stddev 17.886, 0 failed
-progress: 30.0 s, 333.2 tps, lat 23.943 ms stddev 17.299, 0 failed
-progress: 36.0 s, 323.1 tps, lat 24.667 ms stddev 19.079, 0 failed
-progress: 42.0 s, 330.0 tps, lat 24.134 ms stddev 18.230, 0 failed
-progress: 48.0 s, 332.1 tps, lat 24.051 ms stddev 17.754, 0 failed
-progress: 54.0 s, 330.5 tps, lat 24.054 ms stddev 18.215, 0 failed
-progress: 60.0 s, 330.0 tps, lat 24.205 ms stddev 18.044, 0 failed
+progress: 6.0 s, 2000.5 tps, lat 3.987 ms stddev 1.189, 0 failed
+progress: 12.0 s, 2011.0 tps, lat 3.978 ms stddev 1.158, 0 failed
+progress: 18.0 s, 2023.1 tps, lat 3.953 ms stddev 1.165, 0 failed
+progress: 24.0 s, 1991.0 tps, lat 4.017 ms stddev 1.169, 0 failed
+progress: 30.0 s, 1944.4 tps, lat 4.114 ms stddev 1.588, 0 failed
+progress: 36.0 s, 1958.6 tps, lat 4.084 ms stddev 1.426, 0 failed
+progress: 42.0 s, 2034.0 tps, lat 3.933 ms stddev 1.138, 0 failed
+progress: 48.0 s, 2010.3 tps, lat 3.979 ms stddev 1.154, 0 failed
+progress: 54.0 s, 2038.7 tps, lat 3.924 ms stddev 1.130, 0 failed
+progress: 60.0 s, 1987.5 tps, lat 4.025 ms stddev 1.169, 0 failed
 transaction type: <builtin: TPC-B (sort of)>
 scaling factor: 1
 query mode: simple
@@ -48,12 +48,12 @@ number of clients: 8
 number of threads: 1
 maximum number of tries: 1
 duration: 60 s
-number of transactions actually processed: 19649
+number of transactions actually processed: 120003
 number of failed transactions: 0 (0.000%)
-latency average = 24.340 ms
-latency stddev = 18.519 ms
-initial connection time = 25.473 ms
-tps = 327.494501 (without initial connection time)
+latency average = 3.999 ms
+latency stddev = 1.242 ms
+initial connection time = 15.380 ms
+tps = 1999.690689 (without initial connection time)
 ```
 
 Применяю параметры для postgres конфига приложенный к занятию:
@@ -76,24 +76,22 @@ max_wal_size = 16GB
 ```
 После применения конфига и рестарта службы postgres, запускаем нагрузочное тестирование снова с теми же параметрами:
 
-Видим что немного ухудшилось показание **tps**, но колчиство успешно обработанных транзакций увеличилось, показателя **latency** относительно не изменились:
-
 ```
 pgbench -c8 -P 6 -T 60 -U postgres postgres
 
-postgres@studentPC:~$ pgbench -c8 -P 6 -T 60 -U postgres postgres
-pgbench (16.8 (Ubuntu 16.8-0ubuntu0.24.04.1))
+postgres@pgdbvip:~$ pgbench -c8 -P 6 -T 60 -U postgres postgres
+pgbench (16.10 (Ubuntu 16.10-1.pgdg22.04+1))
 starting vacuum...end.
-progress: 6.0 s, 330.3 tps, lat 23.982 ms stddev 16.667, 0 failed
-progress: 12.0 s, 336.7 tps, lat 23.639 ms stddev 16.958, 0 failed
-progress: 18.0 s, 325.9 tps, lat 24.472 ms stddev 18.792, 0 failed
-progress: 24.0 s, 338.9 tps, lat 23.555 ms stddev 17.801, 0 failed
-progress: 30.0 s, 339.3 tps, lat 23.502 ms stddev 18.213, 0 failed
-progress: 36.0 s, 335.5 tps, lat 23.741 ms stddev 16.777, 0 failed
-progress: 42.0 s, 323.8 tps, lat 24.640 ms stddev 21.001, 0 failed
-progress: 48.0 s, 335.3 tps, lat 23.772 ms stddev 17.305, 0 failed
-progress: 54.0 s, 337.5 tps, lat 23.620 ms stddev 17.147, 0 failed
-progress: 60.0 s, 339.5 tps, lat 23.506 ms stddev 18.220, 0 failed
+progress: 6.0 s, 1962.0 tps, lat 4.065 ms stddev 1.265, 0 failed
+progress: 12.0 s, 2033.0 tps, lat 3.935 ms stddev 1.215, 0 failed
+progress: 18.0 s, 2018.5 tps, lat 3.963 ms stddev 1.187, 0 failed
+progress: 24.0 s, 1939.8 tps, lat 4.123 ms stddev 1.604, 0 failed
+progress: 30.0 s, 2020.3 tps, lat 3.959 ms stddev 1.134, 0 failed
+progress: 36.0 s, 2030.0 tps, lat 3.940 ms stddev 1.170, 0 failed
+progress: 42.0 s, 2031.2 tps, lat 3.939 ms stddev 1.140, 0 failed
+progress: 48.0 s, 2034.8 tps, lat 3.931 ms stddev 1.100, 0 failed
+progress: 54.0 s, 1995.2 tps, lat 4.008 ms stddev 1.912, 0 failed
+progress: 60.0 s, 2013.2 tps, lat 3.974 ms stddev 1.169, 0 failed
 transaction type: <builtin: TPC-B (sort of)>
 scaling factor: 1
 query mode: simple
@@ -101,15 +99,17 @@ number of clients: 8
 number of threads: 1
 maximum number of tries: 1
 duration: 60 s
-number of transactions actually processed: 20065
+number of transactions actually processed: 120476
 number of failed transactions: 0 (0.000%)
-latency average = 23.840 ms
-latency stddev = 17.922 ms
-initial connection time = 22.371 ms
-tps = 334.373131 (without initial connection time)
-```
+latency average = 3.984 ms
+latency stddev = 1.319 ms
+initial connection time = 15.011 ms
+tps = 2007.410269 (without initial connection time)
 
-**Шаг 2. Работаем с таблицей а так же с функцией Авто ваккум:**
+```
+Видим что немного ухудшилось показание tps, но колчиство успешно обработанных транзакций увеличилось, показателя latency относительно не изменились
+
+**2. Работаем с таблицей, а так же с функцией autovacuum:**
 
 Создаем таблицу и отключаем autovacuum, генерируем в нее данные:
 
@@ -119,7 +119,6 @@ postgres=# CREATE TABLE test(
   fio char(100)
 ) WITH (autovacuum_enabled = off);
 CREATE TABLE
-
 postgres=# INSERT INTO test(fio) SELECT 'noname' FROM generate_series(1,1000000);
 INSERT 0 1000000
 ```
@@ -155,11 +154,11 @@ FROM pg_stat_user_TABLEs WHERE relname = 'test';
 postgres=# ALTER TABLE test SET (autovacuum_enabled = on);
 ALTER TABLE
 
-postgres=# SELECT relname, n_live_tup, n_dead_tup, trunc(100*n_dead_tup/(n_live_tup+1))::float "ratio%", last_autovacuum 
+postgres=# SELECT relname, n_live_tup, n_dead_tup, trunc(100*n_dead_tup/(n_live_tup+1))::float "ratio%", last_autovacuum
 FROM pg_stat_user_TABLEs WHERE relname = 'test';
- relname | n_live_tup | n_dead_tup | ratio% |        last_autovacuum        
+ relname | n_live_tup | n_dead_tup | ratio% |        last_autovacuum
 ---------+------------+------------+--------+-------------------------------
- test    |    1000000 |          0 |      0 | 2025-04-28 12:48:02.901639+03
+ test    |    1000000 |          0 |      0 | 2025-11-04 18:08:08.543033+00
 (1 row)
 ```
 
@@ -167,15 +166,15 @@ FROM pg_stat_user_TABLEs WHERE relname = 'test';
 
 ```
 postgres=# SELECT pg_size_pretty(pg_total_relation_size('test'));
- pg_size_pretty 
+ pg_size_pretty
 ----------------
- 808 MB
+ 943 MB
 (1 row)
 ```
 
-Отключаю авто вакум таблицы и обновляю данные 10 раз, вывожу размер таблицы:
+Отключаю autovacuum таблицы и обновляю данные 10 раз, вывожу размер таблицы:
 
-Размер таблицы возврос из-за обновлнеие данных
+Размер таблицы возрос из-за обновления данных
 
 ```
 postgres=# ALTER TABLE test SET (autovacuum_enabled = off);
@@ -191,11 +190,11 @@ postgres=# SELECT pg_size_pretty(pg_total_relation_size('test'));
 Дополнительно смотрю на состояние строк в таблице без авто вакума:
 
 ```
-postgres=# SELECT relname, n_live_tup, n_dead_tup, trunc(100*n_dead_tup/(n_live_tup+1))::float "ratio%", last_autovacuum 
+postgres=# SELECT relname, n_live_tup, n_dead_tup, trunc(100*n_dead_tup/(n_live_tup+1))::float "ratio%", last_autovacuum
 FROM pg_stat_user_TABLEs WHERE relname = 'test';
- relname | n_live_tup | n_dead_tup | ratio% |        last_autovacuum        
+ relname | n_live_tup | n_dead_tup | ratio% |        last_autovacuum
 ---------+------------+------------+--------+-------------------------------
- test    |    1666551 |    9998248 |    599 | 2025-04-28 12:51:52.713327+03
+ test    |    1000000 |    9997373 |    999 | 2025-11-04 18:11:09.090497+00
 (1 row)
 ```
 
@@ -215,11 +214,11 @@ FROM pg_stat_user_TABLEs WHERE relname = 'test';
 postgres=# ALTER TABLE test SET (autovacuum_enabled = on);
 ALTER TABLE
 
-ostgres=# SELECT relname, n_live_tup, n_dead_tup, trunc(100*n_dead_tup/(n_live_tup+1))::float "ratio%", last_autovacuum 
+postgres=# SELECT relname, n_live_tup, n_dead_tup, trunc(100*n_dead_tup/(n_live_tup+1))::float "ratio%", last_autovacuum
 FROM pg_stat_user_TABLEs WHERE relname = 'test';
- relname | n_live_tup | n_dead_tup | ratio% |        last_autovacuum        
+ relname | n_live_tup | n_dead_tup | ratio% |        last_autovacuum
 ---------+------------+------------+--------+-------------------------------
- test    |    1834412 |          0 |      0 | 2025-04-28 13:28:48.522367+03
-(1 row)
+ test    |     998008 |          0 |      0 | 2025-11-04 18:15:41.037615+00
+
 ```
 
